@@ -149,53 +149,6 @@
 
         </div>
     </div>
-
-    <div ng-if="advertSource == 'google'" ng-cloak>
-        <section class="row tn-board-advert" ng-show="isReady && operaStatus.isAdvertVisible">
-            <div align="center"
-                 ng-include="::'/views/app/reader/paper/advert-google.html'">
-            </div>
-        </section>
-    </div>
-
-    <div ng-if="advertSource == 'tencent'" ng-cloak>
-        <section class="row tn-board-advert" ng-show="isReady && operaStatus.isAdvertVisible">
-            <div align="center"
-                 ng-include="::'/views/app/reader/paper/advert-tencent.html'">
-            </div>
-        </section>
-    </div>
-
-    <div ng-if="advertSource == 'baidu'" ng-cloak>
-        <section class="row tn-board-advert" ng-show="isReady && operaStatus.isAdvertVisible">
-            <div align="center"
-                 ng-include="::'/views/app/reader/paper/advert-baidu.html'">
-            </div>
-        </section>
-    </div>
-
-    
-
-    <div ng-if="advertSource == 'xiumi'" class="row" ng-cloak>
-        <section class="tn-board-advert" ng-show="isReady && operaStatus.isAdvertVisible">
-            <div class="col-sm-6 col-xs-6 text-left">
-              <div class="prompt cursor-pointer" ng-click="onCloseAdvertClicked()">关闭</div>
-            </div>
-            <div class="col-sm-6 col-xs-6 text-right">
-                <div class="prompt">广告</div>
-            </div>
-            <div class="col-sm-12 col-xs-12"
-                 ng-include="::'/views/app/reader/paper/advert-xiumi.html'">
-            </div>
-        </section>
-    </div>
-
-    <div class="reader-nav-panel" ng-cloak>
-        <div class="qr-code-box">
-            <qrcode qr-data="readerURL" qr-size="160" qr-foreground="#34363c" qr-background="white"></qrcode>
-        </div>
-    </div>
-
 </div>
 
 <section class="tn-scripts tn-last-block">
@@ -206,6 +159,44 @@
     <script src="assets/7ec521.main.min.js"></script>
 
 </section>
+
+
+<script id="autoBgmBoot">
+/* 背景音乐默认开启：浏览器禁止无手势自动播放，故在首次交互时立即接管；微信内走 JSBridge 直接自动播 */
+(function () {
+    var done = false, timers = [];
+    var EVENTS = ['touchstart', 'touchend', 'mousedown', 'click', 'keydown'];
+
+    function attempt() {
+        if (done) return;
+        var a = document.querySelector('audio');
+        if (!a) return;
+        if (!a.paused) { finish(); return; }
+        var wrap = document.querySelector('.player-button');
+        var btn = wrap && wrap.querySelector('button');
+        var on = !!(wrap && wrap.classList.contains('on'));
+        if (btn && !on) {
+            btn.click();               // 状态一致：交给秀米自身逻辑，按钮高亮同步
+        } else {
+            var pr = a.play();         // 状态不一致(此前被拦截)：直接起播
+            if (pr && pr.catch) pr.catch(function () {});
+        }
+        if (!a.paused) finish();
+    }
+
+    function finish() {
+        if (done) return;
+        done = true;
+        EVENTS.forEach(function (e) { document.removeEventListener(e, attempt, true); });
+        timers.forEach(clearTimeout);
+    }
+
+    EVENTS.forEach(function (e) { document.addEventListener(e, attempt, true); });
+    [800, 2000, 4000, 7000].forEach(function (d) { timers.push(setTimeout(attempt, d)); });
+    document.addEventListener('WeixinJSBridgeReady', attempt, false);
+    if (window.WeixinJSBridge) attempt();
+})();
+</script>
 
 </body>
 </html>
