@@ -53,5 +53,13 @@ _source/        原始抓取存档，用于将来重建
 
 注意：CSS 中若出现 `url(/xxx)` 形式的绝对路径，在子目录部署下会 404，必须写成 `url(../xxx)`。
 
+## 移动端禁止缩放
+读者无法双指放大或双击放大，排版始终按设计稿呈现。实现见 `index.html` 的 `noZoomStyle` 与 `noZoomBoot`：
+- `viewport` 加 `maximum-scale=1, user-scalable=no`，`html/body` 设 `touch-action: pan-y`（只允许垂直滚动）；
+- iOS Safari 会无视 `user-scalable=no`，故额外拦截 `gesturestart/change/end` 与 300ms 内的双击；
+- 微信内锁定字体大小，防止读者调字号把排版撑大。
+
+单击不受影响（只拦第二次快点），页面滚动与音乐播放均已验证正常。
+
 ## 已移除的平台元素
 顶部标题栏与模板作者署名、底部"阅读/投诉"页脚、广告位、宽屏侧边二维码 —— 均已去除。

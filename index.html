@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta name="renderer" content="webkit">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <style id="noZoomStyle">
+        /* 禁止双指缩放：仅允许垂直滚动；同时锁死横屏时的字号自动放大 */
+        html, body { touch-action: pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    </style>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -195,6 +199,34 @@
     [800, 2000, 4000, 7000].forEach(function (d) { timers.push(setTimeout(attempt, d)); });
     document.addEventListener('WeixinJSBridgeReady', attempt, false);
     if (window.WeixinJSBridge) attempt();
+})();
+</script>
+
+
+<script id="noZoomBoot">
+/* 禁止移动端放大：iOS Safari 会无视 user-scalable=no，须拦截手势与双击 */
+(function () {
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
+        document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false });
+    });
+
+    var last = 0;
+    document.addEventListener('touchend', function (e) {
+        var now = Date.now();
+        if (now - last < 300) e.preventDefault();   // 仅拦第二次快点，单击不受影响
+        last = now;
+    }, { passive: false });
+
+    // 微信：禁止读者调整字体大小把排版撑大
+    function lockFont() {
+        if (!window.WeixinJSBridge || !WeixinJSBridge.invoke) return;
+        WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
+        WeixinJSBridge.on('menu:setfont', function () {
+            WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
+        });
+    }
+    document.addEventListener('WeixinJSBridgeReady', lockFont, false);
+    if (window.WeixinJSBridge) lockFont();
 })();
 </script>
 
